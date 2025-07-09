@@ -1,40 +1,30 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerController : MonoBehaviour
+public abstract class PlayerController : MonoBehaviour
 {
+	new public string name = "PLAYER";
+	[SerializeField] protected EAttacker attacker;
+	[SerializeField] protected float range;
+	[SerializeField] protected float deathDuration;
+
 	[Header("MOVEMENT")]
-	[SerializeField] private float moveSpeedLimit;
 	[SerializeField] private float moveSpeed;
-	[SerializeField] private float slideValue;
 
-	[Header("JUMP")]
-	[SerializeField] private float jumpForce;
-	[SerializeField] private float fallSpeed;
-	[SerializeField] private float maxJumpTime;
-
-	[Header("GROUND RAYCAST")]
-	[SerializeField] public LayerMask groundMask;
-	[SerializeField] public float playerHeight;
-	[SerializeField] public float groundRaycastSideOffset;
-
-	[Header("SKILLS")]
-	public PlayerSkill skill1;
-
-	private Rigidbody2D rb;
-
+	[Header("INPUTS")]
 	public Vector2 inputMovement;
-	public bool canMove;
-	public bool canJump;
-	public bool canDestroyBlocks;
-	private bool isInputSkill1;
-	private bool isInJump;
-	private bool isInputJump;
-	private bool hasDroppedJump;
-	private bool mustTriggerJump;
-	private float currentJumpTime;
+	public bool inputInteract;
+	public bool inputSplit;
+	public bool inputAction1;
+	public bool inputAction2;
+
+	protected bool canMove;
+	protected bool isForcedToMove;
+	protected Vector2 lastDirection;
+	protected Rigidbody2D rb;
 
 	public Action<Vector2> OnMovementInputChanged;
 
@@ -48,19 +38,37 @@ public class PlayerController : MonoBehaviour
 	private void Start()
 	{
 		canMove = true;
-		canJump = true;
+	}
+
+	private void Update()
+	{
+		Debug.DrawLine(transform.position + (Vector3)lastDirection, transform.position + (Vector3)lastDirection + (Vector3)lastDirection * range);
 	}
 
 	private void FixedUpdate()
 	{
-		UpdateMovement();
+		Move();
 	}
 
-	private void OnCollisionEnter2D(Collision2D collision)
+	protected virtual void Move()
 	{
-		if (canDestroyBlocks && (collision.collider?.CompareTag("Destructible") ?? false))
+		if (!canMove)
 		{
-			Destroy(collision.gameObject);
+			return;
+		}
+
+		rb.MovePosition(rb.position + inputMovement * Time.deltaTime * moveSpeed);
+		if (inputMovement != Vector2.zero)
+		{
+			lastDirection = inputMovement.normalized;
+		}
+	}
+
+	private void OnTriggerStay2D(Collider2D collision)
+	{
+		if (collision.gameObject.CompareTag("DeathZone"))
+		{
+			DieFromDeathZone();
 		}
 	}
 	#endregion
@@ -73,111 +81,85 @@ public class PlayerController : MonoBehaviour
 		print($"MOVE : {inputMovement}");
 	}
 
-	public void OnJump(InputValue input)
+	public void OnInteract(InputValue input)
 	{
-		isInputJump = input.Get<float>() == 1;
-		print($"JUMP : {input.Get<float>()}");
+		inputInteract = input.Get<float>() == 1f;
+		OnInteractChanged(inputInteract);
+	}
 
-		if (isInputJump)
-		{
-			if (IsGrounded())
-			{
-				isInJump = true;
-				mustTriggerJump = true;
-			}
-		}
-
-		if (!isInputJump && isInJump)
-		{
-			hasDroppedJump = true;
-		}
-	} 
-
-	public void OnSkill1(InputValue input)
+	public void OnSplit(InputValue input)
 	{
-		isInputSkill1 = input.Get<float>() == 1;
-		print($"SKILL1 : {input.Get<float>()}");
-		skill1?.Trigger();
+		inputSplit = input.Get<float>() == 1f;
+		OnSplitChanged(inputSplit);
+	}
+
+	public void OnAction1(InputValue input)
+	{
+		inputAction1 = input.Get<float>() == 1f;
+		OnAction1Changed(inputAction1);
+	}
+
+	public void OnAction2(InputValue input)
+	{
+		inputAction2 = input.Get<float>() == 1f;
+		OnAction2Changed(inputAction2);
 	}
 	#endregion
 
-	private bool IsGrounded()
+	#region Input Implementation
+	private void OnInteractChanged(bool value)
 	{
-		Debug.DrawLine(transform.position, transform.position + Vector3.down * playerHeight / 2f, Color.red);
-		Debug.DrawLine(transform.position - groundRaycastSideOffset * Vector3.right, transform.position - groundRaycastSideOffset * Vector3.right + Vector3.down * playerHeight / 2f, Color.red);
-		Debug.DrawLine(transform.position + groundRaycastSideOffset * Vector3.right, transform.position + groundRaycastSideOffset * Vector3.right + Vector3.down * playerHeight / 2f, Color.red);
+		print($"Triggered INTERACT {value} on {name}");
+		
+		//If menu / dialog => next/ok
 
-		if (Physics2D.Raycast(transform.position, Vector2.down, playerHeight / 2f, groundMask).collider == null
-		&& Physics2D.Raycast(transform.position - groundRaycastSideOffset * Vector3.right, Vector2.down, playerHeight / 2f, groundMask).collider == null
-		&& Physics2D.Raycast(transform.position + groundRaycastSideOffset * Vector3.right, Vector2.down, playerHeight / 2f, groundMask).collider == null)
+		RaycastHit2D rh = RaycastForward();
+		if (rh.collider == null)
 		{
-			print("NOT ON GROUND");
-			isInJump = true;
-			if (!isInputJump)
-			{
-				hasDroppedJump = true;
-			}
-			return false;
+			print($"No item in interact range");
+			return;
 		}
 
-		//List<ContactPoint2D> collider2Ds = new List<ContactPoint2D>();
-		//GetComponent<Collider2D>().GetContacts(collider2Ds);
-		//foreach (var item in collider2Ds)
-		//{
-			
-		//}
-
-
-
-		//isInJump = rb.linearVelocityY < -0.1f && rb.linearVelocityY > 0.1f;
-		isInJump = !Mathf.Approximately(rb.linearVelocityY, 0f);
-
-		if (!isInJump)
+		IInteractable interactable = null;
+		if ((interactable = rh.collider.gameObject.GetComponent<IInteractable>()) == null)
 		{
-			hasDroppedJump = false;
+			print($"No interactable item in attack range");
+			return;
 		}
 
-		return !isInJump;
+		interactable.Interact();
 	}
 
-	private void UpdateMovement()
+	protected RaycastHit2D RaycastForward()
 	{
-		//Apply movement from inputMovement
-		if (canMove)
-		{
-			rb.AddForce(inputMovement * moveSpeed * Vector2.right, ForceMode2D.Force);
-			rb.linearVelocityX = Mathf.Clamp(rb.linearVelocityX, -moveSpeedLimit, moveSpeedLimit);
-		}
+		Vector2 raycastStart = transform.position + (Vector3)lastDirection;
+		return Physics2D.Raycast(raycastStart, lastDirection, range);
+	}
 
-		//Apply jump
-		if (canJump)
-		{
-			if (mustTriggerJump)
-			{
-				currentJumpTime = 0f;
-				mustTriggerJump = false;
-				rb.AddForce(jumpForce * Vector2.up, ForceMode2D.Impulse);
-			}
-			else if (!IsGrounded())
-			{
-				currentJumpTime += Time.fixedDeltaTime;
-				if (rb.linearVelocityY < 0 || hasDroppedJump || currentJumpTime > maxJumpTime)
-				{
-					rb.AddForce(Vector2.down * fallSpeed, ForceMode2D.Force);
-				}
-			}
-		}
+	protected virtual void OnSplitChanged(bool value)
+	{
+		print($"Triggered SPLIT {value} on {name}");
+	}
 
-		if (inputMovement.magnitude == 0f && IsGrounded())
-		{
-			if (rb.linearVelocityX > slideValue)
-			{
-				rb.linearVelocityX = slideValue;
-			}
-			else if (rb.linearVelocityX < -slideValue)
-			{
-				rb.linearVelocityX = -slideValue;
-			}
-		}
+	protected abstract void OnAction1Changed(bool value);
+
+	protected abstract void OnAction2Changed(bool value);
+	#endregion
+
+	private IEnumerator Die()
+	{
+		print($"{name} DIED");
+		inputMovement = Vector2.zero;
+		//TODO  : despawn, anim, damage, respawn
+		gameObject.SetActive(false); //fade out
+		yield return new WaitForSeconds(deathDuration);
+		GameManager.instance.RespawnPlayer(this);
+		yield return new WaitForSeconds(deathDuration);
+		gameObject.SetActive(true);
+	}
+
+	protected virtual void DieFromDeathZone()
+	{
+		GameManager.instance.StartCoroutine(Die());
 	}
 }

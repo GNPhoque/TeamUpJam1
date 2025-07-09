@@ -3,13 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class GameManager : MonoBehaviour
 {
+	[Header("PLAYER JOIN")]
+	[SerializeField] private PlayerInputManager playerInputManager;
+	[SerializeField] private GameObject player2Prefab;
+
+	[Header("CAMERA")]
 	[SerializeField] new private CinemachineCamera camera;
 	[SerializeField] private CinemachineTargetGroup cameraTargetGroup;
 	[SerializeField] private PlayerSkillList playerSkillList;
 
+	private Vector3 spawnPos;
 	private Transform cameraTarget;
 	private HashSet<PlayerController> players = new HashSet<PlayerController>();
 
@@ -38,12 +45,8 @@ public class GameManager : MonoBehaviour
 
 	public void AddPlayer(PlayerController pc)
 	{
-		if (players.Count == 0)
-		{
-			pc.skill1 = playerSkillList.playerSkills[0];
-			pc.skill1.Init(pc);
-			pc.gameObject.layer = LayerMask.NameToLayer("Ground");
-		}
+		playerInputManager.playerPrefab = player2Prefab;
+
 		players.Add(pc);
 
 		camera.Follow = cameraTargetGroup.transform;
@@ -59,17 +62,8 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
-	private void UpdateCameraTarget()
+	public void RespawnPlayer(PlayerController pc)
 	{
-
-		if (players.Count == 1)
-		{
-			camera.Follow = players.ElementAt(0).transform;
-		}
-		if (players.Count == 2)
-		{
-			cameraTarget.position = (players.ElementAt(0).transform.position + players.ElementAt(1).transform.position) / 2f;
-			camera.Follow = cameraTarget;
-		}
+		pc.transform.position = spawnPos;
 	}
 }
