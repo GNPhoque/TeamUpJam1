@@ -1,4 +1,4 @@
-public enum EAttacker
+public enum EPlayerType
 {
 	Duck, //Should not happen
 	Beaver,

@@ -2,9 +2,9 @@ using UnityEngine;
 
 public class WoodBox : MonoBehaviour, IBreakable
 {
-	public void Attack(EAttacker attacker)
+	public void Attack(EPlayerType attacker)
 	{
-		if (attacker != EAttacker.Beaver)
+		if (attacker != EPlayerType.Beaver)
 		{
 			print($"{attacker} cannot break {name}");
 			return;

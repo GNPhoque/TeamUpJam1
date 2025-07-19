@@ -7,9 +7,10 @@ using UnityEngine.InputSystem;
 public abstract class PlayerController : MonoBehaviour
 {
 	new public string name = "PLAYER";
-	[SerializeField] protected EAttacker attacker;
+	[SerializeField] protected FusedPlayerInputManager fusedInput;
+	[SerializeField] public GameObject mergeRadius;
+	[SerializeField] public EPlayerType attacker;
 	[SerializeField] protected float range;
-	[SerializeField] protected float deathDuration;
 
 	[Header("MOVEMENT")]
 	[SerializeField] private float moveSpeed;
@@ -20,18 +21,17 @@ public abstract class PlayerController : MonoBehaviour
 	public bool inputSplit;
 	public bool inputAction1;
 	public bool inputAction2;
+	public bool canMove;
 
-	protected bool canMove;
 	protected bool isForcedToMove;
 	protected Vector2 lastDirection;
 	protected Rigidbody2D rb;
-
-	public Action<Vector2> OnMovementInputChanged;
 
 	#region MONOBEHAVIOUR
 	private void Awake()
 	{
 		rb = GetComponent<Rigidbody2D>();
+		fusedInput = GameManager.instance.fusedPlayerInputManager;
 		GameManager.instance.AddPlayer(this);
 	}
 
@@ -64,6 +64,14 @@ public abstract class PlayerController : MonoBehaviour
 		}
 	}
 
+	private void OnTriggerEnter2D(Collider2D collision)
+	{
+		if(collision.GetComponent<CheckPoint>() != null)
+		{
+			GameManager.instance.UpdateCheckPoint(collision.transform.position);
+		}
+	}
+
 	private void OnTriggerStay2D(Collider2D collision)
 	{
 		if (collision.gameObject.CompareTag("DeathZone"))
@@ -76,37 +84,74 @@ public abstract class PlayerController : MonoBehaviour
 	#region INPUTS
 	public void OnMove(InputValue input)
 	{
-		inputMovement = input.Get<Vector2>();
-		OnMovementInputChanged?.Invoke(inputMovement);
-		print($"MOVE : {inputMovement}");
+		Vector2 tmp = input.Get<Vector2>();
+
+		if (fusedInput.isFused || fusedInput.isFusing)
+		{
+			fusedInput.OnMoveChanged(tmp, this);
+			return;
+		}
+
+		OnMoveChanged(tmp);
 	}
 
 	public void OnInteract(InputValue input)
 	{
-		inputInteract = input.Get<float>() == 1f;
-		OnInteractChanged(inputInteract);
+		bool tmp = input.Get<float>() == 1f;
+
+		if (fusedInput.isFused || fusedInput.isFusing)
+		{
+			fusedInput.OnInteractChanged(tmp, this);
+			return;
+		}
+
+		inputInteract = tmp;
+		OnInteractChanged(tmp);
 	}
 
 	public void OnSplit(InputValue input)
 	{
 		inputSplit = input.Get<float>() == 1f;
-		OnSplitChanged(inputSplit);
+
+		fusedInput.OnSplitChanged(inputSplit, this);
 	}
 
 	public void OnAction1(InputValue input)
 	{
-		inputAction1 = input.Get<float>() == 1f;
+		bool tmp = input.Get<float>() == 1f;
+
+		if (fusedInput.isFused || fusedInput.isFusing)
+		{
+			fusedInput.OnAction1Changed(tmp, this);
+			return;
+		}
+
+		inputAction1 = tmp;
 		OnAction1Changed(inputAction1);
 	}
 
 	public void OnAction2(InputValue input)
 	{
-		inputAction2 = input.Get<float>() == 1f;
+		bool tmp = input.Get<float>() == 1f;
+
+		if (fusedInput.isFused || fusedInput.isFusing)
+		{
+			fusedInput.OnAction2Changed(tmp, this);
+			return;
+		}
+
+		inputAction2 = tmp;
 		OnAction2Changed(inputAction2);
 	}
 	#endregion
 
 	#region Input Implementation
+	private void OnMoveChanged(Vector2 value)
+	{
+		inputMovement = value;
+		print($"MOVE : {inputMovement}");
+	}
+
 	private void OnInteractChanged(bool value)
 	{
 		print($"Triggered INTERACT {value} on {name}");
@@ -146,20 +191,19 @@ public abstract class PlayerController : MonoBehaviour
 	protected abstract void OnAction2Changed(bool value);
 	#endregion
 
-	private IEnumerator Die()
+	private void Die()
 	{
 		print($"{name} DIED");
-		inputMovement = Vector2.zero;
-		//TODO  : despawn, anim, damage, respawn
-		gameObject.SetActive(false); //fade out
-		yield return new WaitForSeconds(deathDuration);
-		GameManager.instance.RespawnPlayer(this);
-		yield return new WaitForSeconds(deathDuration);
-		gameObject.SetActive(true);
+		StartCoroutine(GameManager.instance.RespawnPlayer(this));
 	}
 
 	protected virtual void DieFromDeathZone()
 	{
-		GameManager.instance.StartCoroutine(Die());
+		Die();
+	}
+
+	public void ResetInputMovement()
+	{
+		inputMovement = Vector2.zero;
 	}
 }

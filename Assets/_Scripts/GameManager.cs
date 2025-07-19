@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Cinemachine;
@@ -7,6 +8,9 @@ using UnityEngine.InputSystem;
 
 public class GameManager : MonoBehaviour
 {
+	public FusedPlayerInputManager fusedPlayerInputManager;
+	[SerializeField] private float deathDuration;
+
 	[Header("PLAYER JOIN")]
 	[SerializeField] private PlayerInputManager playerInputManager;
 	[SerializeField] private GameObject player2Prefab;
@@ -45,6 +49,15 @@ public class GameManager : MonoBehaviour
 
 	public void AddPlayer(PlayerController pc)
 	{
+		if(pc.attacker == EPlayerType.Duck)
+		{
+			fusedPlayerInputManager.SetDuckVisuals(pc.gameObject.transform.GetChild(0).gameObject);
+		}
+		else if(pc.attacker == EPlayerType.Beaver)
+		{
+			fusedPlayerInputManager.SetBeaverVisuals(pc.gameObject.transform.GetChild(0).gameObject);
+		}
+
 		playerInputManager.playerPrefab = player2Prefab;
 
 		players.Add(pc);
@@ -62,8 +75,28 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
-	public void RespawnPlayer(PlayerController pc)
+	public void RespawnPlayers()
 	{
+		StartCoroutine(RespawnPlayer(players.ElementAt(0)));
+		StartCoroutine(RespawnPlayer(players.ElementAt(1)));
+	}
+
+	public IEnumerator RespawnPlayer(PlayerController pc)
+	{
+		pc.ResetInputMovement();
+		//TODO  : despawn, anim, damage, respawn
+		pc.transform.GetChild(0).gameObject.SetActive(false); //fade out
+		pc.canMove = false;
+		yield return new WaitForSeconds(deathDuration);
 		pc.transform.position = spawnPos;
+		camera.Follow = cameraTargetGroup.transform;
+		yield return new WaitForSeconds(deathDuration);
+		pc.transform.GetChild(0).gameObject.SetActive(true);
+		pc.canMove = true;
+	}
+
+	public void UpdateCheckPoint(Vector2 newPos)
+	{
+		spawnPos = newPos;
 	}
 }

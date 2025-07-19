@@ -2,6 +2,6 @@ using UnityEngine;
 
 public interface IBreakable
 {
-	public void Attack(EAttacker attacker);
+	public void Attack(EPlayerType attacker);
 	public void Break();
 }
