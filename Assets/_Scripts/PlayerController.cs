@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
-public abstract class PlayerController : MonoBehaviour
+public abstract class PlayerController : APlayer
 {
 	new public string name = "PLAYER";
 	[SerializeField] protected FusedPlayerInputManager fusedInput;
@@ -45,6 +45,7 @@ public abstract class PlayerController : MonoBehaviour
 	{
 		canMove = true;
 		isFacingRight = true;
+		sprite.flipX = !isFacingRight;
 	}
 
 	private void Update()
@@ -216,10 +217,9 @@ public abstract class PlayerController : MonoBehaviour
 	protected abstract void OnAction2Changed(bool value);
 	#endregion
 
-	private void Die()
+	public override void Die()
 	{
 		print($"{name} DIED");
-		animator.SetTrigger("Death");
 		StartCoroutine(GameManager.instance.RespawnPlayer(this));
 	}
 

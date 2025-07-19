@@ -2,7 +2,7 @@ using System.Collections;
 using Unity.Cinemachine;
 using UnityEngine;
 
-public class PlayerPlatypusController : MonoBehaviour
+public class PlayerPlatypusController : APlayer
 {
 	[SerializeField] private FusedPlayerInputManager fusedInput;
 	[SerializeField] new private CinemachineCamera camera;
@@ -25,6 +25,7 @@ public class PlayerPlatypusController : MonoBehaviour
 		animator = transform.GetChild(0).GetComponent<Animator>();
 		currentMovementTimer = moveTime;
 		isFacingRight = true;
+		sprite.flipX = isFacingRight;
 	}
 
 	private void FixedUpdate()
@@ -67,14 +68,7 @@ public class PlayerPlatypusController : MonoBehaviour
 	{
 		if (collision.gameObject.CompareTag("DeathZone"))
 		{
-			print($"{name} DIED");
-
-			//Disable movement
-			currentMovementTimer += moveTime;
-			inputMovement = Vector2.zero;
-
-			TriggerDeathAnim();
-			fusedInput.OnPlatypusDeath();
+			Die();
 		}
 	}
 
@@ -139,6 +133,18 @@ public class PlayerPlatypusController : MonoBehaviour
 	public void TriggerDeathAnim()
 	{
 		animator.SetTrigger("Death");
+	}
+
+	public override void Die()
+	{
+		print($"{name} DIED");
+
+		//Disable movement
+		currentMovementTimer += moveTime;
+		inputMovement = Vector2.zero;
+
+		TriggerDeathAnim();
+		fusedInput.OnPlatypusDeath();
 	}
 	#endregion
 }

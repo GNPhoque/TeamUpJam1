@@ -100,6 +100,7 @@ public class FusedPlayerInputManager : MonoBehaviour
 		if (!isTriggered)
 		{
 			platypus.OnMoveChanged(moveDirection);
+			moveDirection = Vector2.zero;
 			isTriggered = true;
 			didDuckInputMove = false;
 			didBeaverInputMove = false;
