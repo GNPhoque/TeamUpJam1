@@ -123,6 +123,15 @@ public class FusedPlayerInputManager : MonoBehaviour
 				return;
 			}
 
+			if (isFused)
+			{
+				platypus.TriggerSplitAnim();
+			}
+			else
+			{
+				pc.TriggerSplitAnim();
+			}
+
 			isTriggered = false;
 			isFusing = true;
 			didDuckInputMove = false;
@@ -148,11 +157,14 @@ public class FusedPlayerInputManager : MonoBehaviour
 			if (isFused)
 			{
 				platypus.transform.position = (duckVisuals.transform.position + beaverVisuals.transform.position) / 2f;
+				platypus.TriggerMergeAnim();
 			}
 			else
 			{
 				duckVisuals.transform.parent.position = platypus.transform.position;
 				beaverVisuals.transform.parent.position = platypus.transform.position;
+				GameManager.instance.GetBeaver().TriggerMergeAnim();
+				GameManager.instance.GetDuck().TriggerMergeAnim();
 			}
 		}
 	}

@@ -66,6 +66,16 @@ public class GameManager : MonoBehaviour
 		cameraTargetGroup.AddMember(pc.transform, 1f, 5f);
 	}
 
+	public PlayerController GetBeaver()
+	{
+		return players.ElementAt(0);
+	}
+
+	public PlayerController GetDuck()
+	{
+		return players.ElementAt(1);
+	}
+
 	public void RemovePlayer(PlayerController pc)
 	{
 		if (players.Contains(pc))

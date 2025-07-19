@@ -10,15 +10,21 @@ public class PlayerPlatypusController : MonoBehaviour
 	[SerializeField] private CinemachineTargetGroup platypusCameraTargetGroup;
 	[SerializeField] private float moveSpeed;
 	[SerializeField] private float moveTime;
-
+	
+	private bool isFacingRight;
 	private Rigidbody2D rb;
+	private SpriteRenderer sprite;
+	private Animator animator;
 	private Vector2 inputMovement;
 	private float currentMovementTimer;
 
 	private void Start()
 	{
 		rb = GetComponent<Rigidbody2D>();
+		sprite = transform.GetChild(0).GetComponent<SpriteRenderer>();
+		animator = transform.GetChild(0).GetComponent<Animator>();
 		currentMovementTimer = moveTime;
+		isFacingRight = true;
 	}
 
 	private void FixedUpdate()
@@ -28,13 +34,25 @@ public class PlayerPlatypusController : MonoBehaviour
 
 	protected virtual void Move()
 	{
-		if(currentMovementTimer >= moveTime)
+		if (currentMovementTimer >= moveTime)
 		{
 			return;
 		}
 
-		rb.MovePosition(rb.position + inputMovement * Time.deltaTime * moveSpeed);
 		currentMovementTimer += Time.deltaTime;
+		animator.SetBool("Walk", currentMovementTimer < moveTime);
+
+		rb.MovePosition(rb.position + inputMovement * Time.deltaTime * moveSpeed);
+
+		if (inputMovement.x > 0.01f)
+		{
+			isFacingRight = true;
+		}
+		else if (inputMovement.x < -0.01f)
+		{
+			isFacingRight = false;
+		}
+		sprite.flipX = isFacingRight;
 	}
 
 	private void OnTriggerEnter2D(Collider2D collision)
@@ -55,6 +73,7 @@ public class PlayerPlatypusController : MonoBehaviour
 			currentMovementTimer += moveTime;
 			inputMovement = Vector2.zero;
 
+			TriggerDeathAnim();
 			fusedInput.OnPlatypusDeath();
 		}
 	}
@@ -88,10 +107,38 @@ public class PlayerPlatypusController : MonoBehaviour
 	public void OnAction1Changed()
 	{
 		print($"Triggered ACTION 1 on {name}");
+		TriggerAction1Anim();
 	}
 
 	public void OnAction2Changed()
 	{
 		print($"Triggered ACTION 2 on {name}");
+		TriggerAction2Anim();
 	}
+
+	#region ANIMATION
+	public void TriggerSplitAnim()
+	{
+		animator.SetTrigger("Split");
+	}
+	public void TriggerMergeAnim()
+	{
+		animator.SetTrigger("Merge");
+	}
+
+	public void TriggerAction1Anim()
+	{
+		animator.SetTrigger("Action1");
+	}
+
+	public void TriggerAction2Anim()
+	{
+		animator.SetTrigger("Action2");
+	}
+
+	public void TriggerDeathAnim()
+	{
+		animator.SetTrigger("Death");
+	}
+	#endregion
 }

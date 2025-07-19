@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public abstract class PlayerController : MonoBehaviour
 {
@@ -23,21 +24,27 @@ public abstract class PlayerController : MonoBehaviour
 	public bool inputAction2;
 	public bool canMove;
 
+	private bool isFacingRight;
 	protected bool isForcedToMove;
 	protected Vector2 lastDirection;
 	protected Rigidbody2D rb;
+	private SpriteRenderer sprite;
+	private Animator animator;
 
 	#region MONOBEHAVIOUR
 	private void Awake()
 	{
 		rb = GetComponent<Rigidbody2D>();
 		fusedInput = GameManager.instance.fusedPlayerInputManager;
+		sprite = transform.GetChild(0).GetComponent<SpriteRenderer>();
+		animator = transform.GetChild(0).GetComponent<Animator>();
 		GameManager.instance.AddPlayer(this);
 	}
 
 	private void Start()
 	{
 		canMove = true;
+		isFacingRight = true;
 	}
 
 	private void Update()
@@ -54,6 +61,7 @@ public abstract class PlayerController : MonoBehaviour
 	{
 		if (!canMove)
 		{
+			animator.SetBool("Walk", false);
 			return;
 		}
 
@@ -61,6 +69,21 @@ public abstract class PlayerController : MonoBehaviour
 		if (inputMovement != Vector2.zero)
 		{
 			lastDirection = inputMovement.normalized;
+			if (lastDirection.x > 0.01f)
+			{
+				isFacingRight = true;
+			}
+			else if(lastDirection.x < -0.01f)
+			{
+				isFacingRight = false;
+			}
+
+			sprite.flipX = !isFacingRight;
+			animator.SetBool("Walk", true);
+		}
+		else
+		{
+			animator.SetBool("Walk", false);
 		}
 	}
 
@@ -128,6 +151,7 @@ public abstract class PlayerController : MonoBehaviour
 
 		inputAction1 = tmp;
 		OnAction1Changed(inputAction1);
+		animator.SetTrigger("Action1");
 	}
 
 	public void OnAction2(InputValue input)
@@ -142,6 +166,7 @@ public abstract class PlayerController : MonoBehaviour
 
 		inputAction2 = tmp;
 		OnAction2Changed(inputAction2);
+		animator.SetTrigger("Action2");
 	}
 	#endregion
 
@@ -194,16 +219,28 @@ public abstract class PlayerController : MonoBehaviour
 	private void Die()
 	{
 		print($"{name} DIED");
+		animator.SetTrigger("Death");
 		StartCoroutine(GameManager.instance.RespawnPlayer(this));
 	}
 
 	protected virtual void DieFromDeathZone()
 	{
+		animator.SetTrigger("Death");
 		Die();
 	}
 
 	public void ResetInputMovement()
 	{
 		inputMovement = Vector2.zero;
+	}
+
+	public void TriggerMergeAnim()
+	{
+		animator.SetTrigger("Merge");
+	}
+
+	public void TriggerSplitAnim()
+	{
+		animator.SetTrigger("Split");
 	}
 }
