@@ -43,6 +43,8 @@ public class FusedPlayerInputManager : MonoBehaviour
 
 	public void OnPlatypusDeath()
 	{
+		StopPlatypus();
+
 		//TODO  : despawn, anim, damage, respawn
 		isFused = !isFused;
 		platypusVisuals.SetActive(false); //fade out
@@ -65,7 +67,7 @@ public class FusedPlayerInputManager : MonoBehaviour
 			return;
 		}
 
-		if(moveDirection == Vector2.zero)
+		if (moveDirection == Vector2.zero)
 		{
 			moveDirection = value.normalized;
 		}
@@ -73,7 +75,7 @@ public class FusedPlayerInputManager : MonoBehaviour
 		{
 			float angle = Vector2.Angle(value, moveDirection);
 			print(angle);
-			if(angle > moveAngleMaxDifference)
+			if (angle > moveAngleMaxDifference)
 			{
 				OnBubbleCancelled();
 				chargingBubble.Hide();
@@ -81,9 +83,11 @@ public class FusedPlayerInputManager : MonoBehaviour
 				return;
 			}
 		}
-		
+
+		StopPlatypus();
+
 		isTriggered = false;
-		if(pc.attacker == EPlayerType.Duck)
+		if (pc.attacker == EPlayerType.Duck)
 		{
 			didDuckInputMove = true;
 		}
@@ -91,14 +95,28 @@ public class FusedPlayerInputManager : MonoBehaviour
 		{
 			didBeaverInputMove = true;
 		}
+
 		chargingBubble.SetIcon(EChargingActionType.Move, pc.attacker);
 		chargingBubble.OnBubbleFilled += TriggerMove;
+	}
+
+	private void StopPlatypus()
+	{
+		if (platypus.IsWalking)
+		{
+			chargingBubble.Hide();
+			platypus.StopMovement();
+			didDuckInputMove = false;
+			didBeaverInputMove = false;
+		}
 	}
 
 	private void TriggerMove()
 	{
 		if (!isTriggered)
 		{
+			StopPlatypus();
+
 			platypus.OnMoveChanged(moveDirection);
 			moveDirection = Vector2.zero;
 			isTriggered = true;
@@ -109,6 +127,8 @@ public class FusedPlayerInputManager : MonoBehaviour
 
 	public void OnInteractChanged(bool value, PlayerController pc)
 	{
+		StopPlatypus();
+
 		platypus.OnInteractionChanged(value);
 	}
 
@@ -118,8 +138,10 @@ public class FusedPlayerInputManager : MonoBehaviour
 
 		if (value)
 		{
+			StopPlatypus();
 
-			if(Vector2.Distance(duckVisuals.transform.position, beaverVisuals.transform.position) > mergeMaxRadius)
+
+			if (Vector2.Distance(duckVisuals.transform.position, beaverVisuals.transform.position) > mergeMaxRadius)
 			{
 				return;
 			}
@@ -133,10 +155,10 @@ public class FusedPlayerInputManager : MonoBehaviour
 				pc.TriggerSplitAnim();
 			}
 
+			StopPlatypus();
+
 			isTriggered = false;
 			isFusing = true;
-			didDuckInputMove = false;
-			didBeaverInputMove = false;
 			chargingBubble.SetIcon(EChargingActionType.Split, pc.attacker);
 			chargingBubble.OnBubbleFilled += TriggerSplit;
 		}
@@ -146,6 +168,8 @@ public class FusedPlayerInputManager : MonoBehaviour
 	{
 		if (!isTriggered)
 		{
+			StopPlatypus();
+
 			platypus.OnSplitChanged();
 			isFused = !isFused;
 			isTriggered = true;
@@ -174,6 +198,8 @@ public class FusedPlayerInputManager : MonoBehaviour
 	{
 		if (value)
 		{
+			StopPlatypus();
+
 			isTriggered = false;
 			chargingBubble.SetIcon(EChargingActionType.Action1, pc.attacker);
 			chargingBubble.OnBubbleFilled += TriggerAction1;
@@ -184,6 +210,8 @@ public class FusedPlayerInputManager : MonoBehaviour
 	{
 		if (!isTriggered)
 		{
+			StopPlatypus();
+
 			platypus.OnAction1Changed();
 			isTriggered = true;
 		}
@@ -193,6 +221,8 @@ public class FusedPlayerInputManager : MonoBehaviour
 	{
 		if (value)
 		{
+			StopPlatypus();
+
 			isTriggered = false;
 			chargingBubble.SetIcon(EChargingActionType.Action2, pc.attacker);
 			chargingBubble.OnBubbleFilled += TriggerAction2;
@@ -203,6 +233,8 @@ public class FusedPlayerInputManager : MonoBehaviour
 	{
 		if (!isTriggered)
 		{
+			StopPlatypus();
+
 			platypus.OnAction2Changed();
 			isTriggered = true;
 		}

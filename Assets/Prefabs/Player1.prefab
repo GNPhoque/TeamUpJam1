@@ -323,7 +323,7 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDamping: 0
+  m_LinearDamping: 3
   m_AngularDamping: 0.05
   m_GravityScale: 0
   m_Material: {fileID: 0}
@@ -361,3 +361,6 @@ MonoBehaviour:
   inputAction1: 0
   inputAction2: 0
   canMove: 0
+  action2Cooldown: 1
+  damageAreaPrefab: {fileID: 3734030383047142944, guid: 0bac0c8fb86709145bd1e14b8cb0474c, type: 3}
+  pushAreaPrefab: {fileID: 7225959609981442929, guid: 79574f52e6e54db4bb6dccf8010f11c3, type: 3}

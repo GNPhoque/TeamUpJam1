@@ -8,6 +8,7 @@ public class PlayerPlatypusController : APlayer
 	[SerializeField] new private CinemachineCamera camera;
 	[SerializeField] private CinemachineTargetGroup playersCameraTargetGroup;
 	[SerializeField] private CinemachineTargetGroup platypusCameraTargetGroup;
+	[SerializeField] private PlatypusSpit spitPrefab;
 	[SerializeField] private float moveSpeed;
 	[SerializeField] private float moveTime;
 	
@@ -17,6 +18,8 @@ public class PlayerPlatypusController : APlayer
 	private Animator animator;
 	private Vector2 inputMovement;
 	private float currentMovementTimer;
+
+	public bool IsWalking { get => currentMovementTimer < moveTime; }
 
 	private void Start()
 	{
@@ -72,6 +75,11 @@ public class PlayerPlatypusController : APlayer
 		}
 	}
 
+	public void StopMovement()
+	{
+		currentMovementTimer = moveTime;
+	}
+
 	public void OnMoveChanged(Vector2 value)
 	{
 		print($"Triggered MOVE {value} on {name}");
@@ -101,7 +109,16 @@ public class PlayerPlatypusController : APlayer
 	public void OnAction1Changed()
 	{
 		print($"Triggered ACTION 1 on {name}");
+
+		if(inputMovement == Vector2.zero)
+		{
+			return;
+		}
+
+		//Shoot
 		TriggerAction1Anim();
+
+		Instantiate(spitPrefab, transform.position, Quaternion.identity).SetDirection(inputMovement);
 	}
 
 	public void OnAction2Changed()
@@ -140,7 +157,7 @@ public class PlayerPlatypusController : APlayer
 		print($"{name} DIED");
 
 		//Disable movement
-		currentMovementTimer += moveTime;
+		currentMovementTimer = moveTime;
 		inputMovement = Vector2.zero;
 
 		TriggerDeathAnim();

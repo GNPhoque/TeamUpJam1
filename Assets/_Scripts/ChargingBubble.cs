@@ -62,18 +62,23 @@ public class ChargingBubble : MonoBehaviour
 				return;
 			case EChargingActionType.Move:
 				iconImage.sprite = iconMove;
+				iconImage.color = Color.red;
 				break;
 			case EChargingActionType.Interact:
 				iconImage.sprite = iconInteract;
+				iconImage.color = Color.cyan;
 				break;
 			case EChargingActionType.Split:
 				iconImage.sprite = iconSplit;
+				iconImage.color = Color.blue;
 				break;
 			case EChargingActionType.Action1:
 				iconImage.sprite = iconAction1;
+				iconImage.color = Color.gray;
 				break;
 			case EChargingActionType.Action2:
 				iconImage.sprite = iconAction2;
+				iconImage.color = Color.green;
 				break;
 			default:
 				Debug.LogError($"Tried setting bubble with unmanaged type : {type}");

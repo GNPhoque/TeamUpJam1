@@ -5,7 +5,10 @@ using UnityEngine;
 public abstract class EnemyAI : MonoBehaviour
 {
 	[SerializeField] protected float moveSpeed;
-	[SerializeField] protected float attackRange;
+	[SerializeField] protected float attackRangeMin;
+	[SerializeField] protected float attackRangeMax;
+	[SerializeField] protected float attackDelay;
+	[SerializeField] protected float currentAttackDelay;
 	[SerializeField] protected float detectionRange;
 
 	protected Rigidbody2D rb;
@@ -15,17 +18,14 @@ public abstract class EnemyAI : MonoBehaviour
 	protected abstract void MoveTowardPlayer();
 	protected abstract bool CanAttackPlayer();
 	protected abstract void AttackPlayer();
-	protected abstract void Die();
+	public abstract void Die();
 
 	private void Awake()
 	{
 		rb = GetComponent<Rigidbody2D>();
 		animator = transform.GetChild(0).GetComponent<Animator>();
-	}
 
-	private void Start()
-	{
-		
+		currentAttackDelay = attackDelay;
 	}
 
 	private void FixedUpdate()
@@ -37,9 +37,18 @@ public abstract class EnemyAI : MonoBehaviour
 			return;
 		}
 
-		if(Vector2.Distance(playerTarget.transform.position, transform.position) > attackRange)
+		if(Vector2.Distance(playerTarget.transform.position, transform.position) > attackRangeMin)
 		{
 			MoveTowardPlayer();
+		}
+
+		if(Vector2.Distance(playerTarget.transform.position, transform.position) <= attackRangeMax)
+		{
+			currentAttackDelay -= Time.deltaTime;
+		}
+		else
+		{
+			currentAttackDelay = attackDelay;
 		}
 
 		if (!CanAttackPlayer())

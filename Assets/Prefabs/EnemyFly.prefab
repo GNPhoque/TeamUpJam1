@@ -47,7 +47,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 8
-  attackRange: 2
+  attackRangeMin: 0.7
+  attackRangeMax: 1.2
+  attackDelay: 1
+  currentAttackDelay: 0
   detectionRange: 15
 --- !u!50 &1074078759869230479
 Rigidbody2D:
@@ -62,7 +65,7 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDamping: 0
+  m_LinearDamping: 3
   m_AngularDamping: 0.05
   m_GravityScale: 0
   m_Material: {fileID: 0}
