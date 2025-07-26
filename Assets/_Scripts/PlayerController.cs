@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -181,18 +182,32 @@ public abstract class PlayerController : APlayer
 	private void OnInteractChanged(bool value)
 	{
 		print($"Triggered INTERACT {value} on {name}");
+
+		if(value == false)
+		{
+			return;
+		}
 		
 		//If menu / dialog => next/ok
+		List<RaycastHit2D> hits = new List<RaycastHit2D>();
 
-		RaycastHit2D rh = RaycastForward();
-		if (rh.collider == null)
+		RaycastForward(ref hits);
+		if (hits.All(x => x.collider == null))
 		{
 			print($"No item in interact range");
 			return;
 		}
 
 		IInteractable interactable = null;
-		if ((interactable = rh.collider.gameObject.GetComponent<IInteractable>()) == null)
+		foreach (var item in hits)
+		{
+			interactable = item.collider.gameObject.GetComponent<IInteractable>();
+			if(interactable != null)
+			{
+				break;
+			}
+		}
+		if (interactable == null)
 		{
 			print($"No interactable item in attack range");
 			return;
@@ -201,10 +216,10 @@ public abstract class PlayerController : APlayer
 		interactable.Interact();
 	}
 
-	protected RaycastHit2D RaycastForward()
+	protected void RaycastForward( ref List<RaycastHit2D> hits)
 	{
 		Vector2 raycastStart = transform.position + (Vector3)lastDirection;
-		return Physics2D.Raycast(raycastStart, lastDirection, range);
+		Physics2D.Raycast(raycastStart, lastDirection, new ContactFilter2D(), hits, distance:range);
 	}
 
 	protected virtual void OnSplitChanged(bool value)

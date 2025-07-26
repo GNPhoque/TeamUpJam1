@@ -27,6 +27,8 @@ public class PushableBox : MonoBehaviour, IPushable
 			return;
 		}
 
+		Vector2 startPosition = rb.position;
+
 		rb.bodyType = RigidbodyType2D.Dynamic;
 		Vector2 fromDirection = (from - rb.position).normalized;
 
@@ -44,8 +46,15 @@ public class PushableBox : MonoBehaviour, IPushable
 		rb.DOMove(pushEndPosition, movementDuration).OnKill(() => 
 		{ 
 			_isBeingPushed = false; 
-			rb.bodyType = RigidbodyType2D.Kinematic; 
-			//rb.position = pushEndPosition; 
+			rb.bodyType = RigidbodyType2D.Kinematic;
+			if (Vector2.Distance(rb.position, pushEndPosition) < .1f)
+			{
+				rb.position = pushEndPosition;
+			}
+			else
+			{
+				rb.position = startPosition;
+			}
 		});
 	}
 }

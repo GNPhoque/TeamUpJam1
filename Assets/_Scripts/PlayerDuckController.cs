@@ -69,6 +69,7 @@ public class PlayerDuckController : PlayerController
 
 		isFlying = value;
 		flyShadow.SetActive(value);
+		Physics2D.IgnoreLayerCollision(8, 9, value);
 		transform.localScale = Vector3.one * (value ? flyWidening : 1f);
 	}
 	#endregion
