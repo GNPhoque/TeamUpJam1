@@ -29,7 +29,7 @@ public abstract class PlayerController : APlayer
 	protected bool isForcedToMove;
 	protected Vector2 lastDirection;
 	protected Rigidbody2D rb;
-	private SpriteRenderer sprite;
+	protected SpriteRenderer sprite;
 	private Animator animator;
 
 	#region MONOBEHAVIOUR
@@ -94,6 +94,13 @@ public abstract class PlayerController : APlayer
 		if(collision.GetComponent<CheckPoint>() != null)
 		{
 			GameManager.instance.UpdateCheckPoint(collision.transform.position);
+		}
+		HidingItem hidingItem = collision.GetComponent<HidingItem>();
+		if(hidingItem != null && hidingItem.isRevealed)
+		{
+			Destroy(collision.gameObject);
+
+			UIManager.instance.OnCollectibleFetched();
 		}
 	}
 

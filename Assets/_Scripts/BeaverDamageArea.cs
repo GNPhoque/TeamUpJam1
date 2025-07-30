@@ -16,7 +16,7 @@ public class BeaverDamageArea : MonoBehaviour
 
 	private void OnTriggerEnter2D(Collider2D collision)
 	{
-		EnemyAI ai = collision.transform.parent.GetComponent<EnemyAI>();
+		EnemyAI ai = collision.transform?.parent?.GetComponent<EnemyAI>();
 		if(ai != null)
 		{
 			ai.Die();

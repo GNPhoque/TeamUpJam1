@@ -11,6 +11,7 @@ public abstract class EnemyAI : MonoBehaviour
 	[SerializeField] protected float currentAttackDelay;
 	[SerializeField] protected float detectionRange;
 
+	protected bool canMove = true;
 	protected Rigidbody2D rb;
 	protected APlayer playerTarget;
 	protected Animator animator;
@@ -30,6 +31,11 @@ public abstract class EnemyAI : MonoBehaviour
 
 	private void FixedUpdate()
 	{
+		if (!canMove)
+		{
+			return;
+		}
+
 		DetectPlayerTarget();
 
 		if (playerTarget == null)

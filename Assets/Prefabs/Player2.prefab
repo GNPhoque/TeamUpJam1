@@ -279,6 +279,9 @@ MonoBehaviour:
   flyWidening: 1.2
   dashSpeed: 35
   dashDuration: 0.3
+  blinkPrefab: {fileID: 3798465992453220089, guid: 7ddbd4603c5b2ac4baa50347d00ac8a8, type: 3}
+  blinkStun: 1
+  blinkDuration: 5
 --- !u!1 &9070736095117713283
 GameObject:
   m_ObjectHideFlags: 0

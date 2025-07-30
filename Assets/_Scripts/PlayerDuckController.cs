@@ -12,6 +12,11 @@ public class PlayerDuckController : PlayerController
 	[SerializeField] float dashSpeed;
 	[SerializeField] float dashDuration;
 
+	[Header("Blink")]
+	[SerializeField] BlinkCollider blinkPrefab;
+	[SerializeField] float blinkStun;
+	[SerializeField] float blinkDuration;
+
 	private bool isFlying;
 	private bool isDashing;
 
@@ -31,7 +36,24 @@ public class PlayerDuckController : PlayerController
 			return;
 		}
 
-		StartCoroutine(DashCooldown());
+		StartCoroutine(BlinkCooldown());
+		//StartCoroutine(DashCooldown());
+	}
+
+	private IEnumerator BlinkCooldown()
+	{
+		canMove = false;
+
+		Instantiate(blinkPrefab, transform.position, Quaternion.identity);
+
+		float currentDuration = 0f;
+		while (currentDuration < blinkStun)
+		{
+			yield return null;
+			currentDuration += Time.deltaTime;
+		}
+
+		canMove = true;
 	}
 
 	private IEnumerator DashCooldown()

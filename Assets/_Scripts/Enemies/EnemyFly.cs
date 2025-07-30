@@ -1,7 +1,17 @@
+using System.Collections;
 using UnityEngine;
 
 public class EnemyFly : EnemyAI
 {
+	public int hp;
+	private SpriteRenderer spriteRenderer;
+
+	private void Start()
+	{
+		spriteRenderer = transform.GetChild(0).GetComponent<SpriteRenderer>();
+		animator = transform.GetChild(0).GetComponent<Animator>();
+	}
+
 
 	protected override void MoveTowardPlayer()
 	{
@@ -23,6 +33,51 @@ public class EnemyFly : EnemyAI
 
 	public override void Die()
 	{
-		Destroy(gameObject);
+		if (!canMove)
+		{
+			return;
+		}
+
+		hp--;
+
+		if (hp <= 0)
+		{
+			Destroy(gameObject);
+		}
+		else
+		{
+			StartCoroutine(Invincibility());
+		}
+	}
+
+	private IEnumerator Invincibility()
+	{
+		canMove = false;
+		spriteRenderer.material.SetFloat("_FlashAmount", 1f);
+		yield return new WaitForSeconds(.2f);
+		spriteRenderer.material.SetFloat("_FlashAmount", 0f);
+		yield return new WaitForSeconds(.2f);
+		spriteRenderer.material.SetFloat("_FlashAmount", 1f);
+		yield return new WaitForSeconds(.2f);
+		spriteRenderer.material.SetFloat("_FlashAmount", 0f);
+		yield return new WaitForSeconds(.2f);
+		spriteRenderer.material.SetFloat("_FlashAmount", 1f);
+		yield return new WaitForSeconds(.2f);
+		spriteRenderer.material.SetFloat("_FlashAmount", 0f);
+		yield return new WaitForSeconds(.2f);
+		spriteRenderer.material.SetFloat("_FlashAmount", 1f);
+		yield return new WaitForSeconds(.2f);
+		spriteRenderer.material.SetFloat("_FlashAmount", 0f);
+		yield return new WaitForSeconds(.2f);
+		spriteRenderer.material.SetFloat("_FlashAmount", 1f);
+		yield return new WaitForSeconds(.2f);
+		spriteRenderer.material.SetFloat("_FlashAmount", 0f);
+		yield return new WaitForSeconds(.2f);
+		spriteRenderer.material.SetFloat("_FlashAmount", 1f);
+		yield return new WaitForSeconds(.2f);
+		spriteRenderer.material.SetFloat("_FlashAmount", 0f);
+		yield return new WaitForSeconds(.2f);
+
+		canMove = true;
 	}
 }
