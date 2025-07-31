@@ -354,7 +354,7 @@ MonoBehaviour:
   mergeRadius: {fileID: 4482026699005765426}
   attacker: 1
   range: 1.2
-  moveSpeed: 10
+  moveSpeed: 5
   inputMovement: {x: 0, y: 0}
   inputInteract: 0
   inputSplit: 0
